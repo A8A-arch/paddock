@@ -1,0 +1,110 @@
+<!doctype html>
+<html lang="fr">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>A8A Paddock</title>
+  <meta name="description" content="Toutes les courses auto et moto de la semaine : horaires à ton heure, chaînes TV et rappels.">
+  <meta name="theme-color" content="#0d0e11">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+  <meta name="apple-mobile-web-app-title" content="A8A Paddock">
+  <link rel="manifest" href="manifest.webmanifest">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@500;600;700&family=Inter:wght@400;500;600&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="css/styles.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="brand-flag" aria-hidden="true"></span>
+      <span class="brand-name"><span class="brand-a8a">A8A</span> PADDOCK</span>
+    </div>
+    <button class="icon-btn" id="btn-settings" aria-label="Réglages">
+      <svg viewBox="0 0 24 24" width="22" height="22" aria-hidden="true"><path fill="currentColor" d="M19.4 13a7.5 7.5 0 0 0 0-2l2-1.6-2-3.4-2.4 1a7 7 0 0 0-1.7-1L15 3.5h-4l-.4 2.5a7 7 0 0 0-1.7 1l-2.4-1-2 3.4L6.6 11a7.5 7.5 0 0 0 0 2l-2 1.6 2 3.4 2.4-1a7 7 0 0 0 1.7 1l.3 2.5h4l.4-2.5a7 7 0 0 0 1.7-1l2.4 1 2-3.4-2.1-1.6ZM13 15.5a3.5 3.5 0 1 1 0-7 3.5 3.5 0 0 1 0 7Z" transform="translate(-1 0)"/></svg>
+    </button>
+  </header>
+
+  <main id="app">
+    <div id="alerts"></div>
+
+    <section class="hero" id="hero" aria-live="polite"></section>
+
+    <nav class="segmented" role="tablist" aria-label="Période">
+      <button role="tab" data-view="weekend" class="seg">Week-end</button>
+      <button role="tab" data-view="week" class="seg">Semaine</button>
+      <button role="tab" data-view="upcoming" class="seg">À venir</button>
+      <button role="tab" data-view="later" class="seg">Plus tard</button>
+    </nav>
+
+    <div class="filter" id="filter">
+      <i class="filter-dot" aria-hidden="true"></i>
+      <select id="series-filter" aria-label="Filtrer par série"></select>
+      <svg class="filter-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
+      <button class="filter-clear" id="filter-clear" aria-label="Afficher toutes les séries">✕</button>
+    </div>
+
+    <section id="list" class="list"></section>
+
+    <footer class="foot" id="foot"></footer>
+  </main>
+
+  <!-- Détail d'une session -->
+  <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
+  <section class="sheet" id="sheet-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden></section>
+
+  <!-- Réglages -->
+  <section class="sheet" id="sheet-settings" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2 id="settings-title">Réglages</h2>
+      <button class="text-btn" data-close>OK</button>
+    </div>
+
+    <div class="setting-group">
+      <h3>Sessions affichées</h3>
+      <label class="row-toggle"><span>Essais libres <small class="muted">(affichés, jamais de rappel)</small></span><input type="checkbox" id="set-essais"></label>
+      <label class="row-toggle"><span>Qualifications</span><input type="checkbox" id="set-qualif"></label>
+      <label class="row-toggle"><span>Sprints</span><input type="checkbox" id="set-sprint"></label>
+      <label class="row-toggle"><span>Courses</span><input type="checkbox" id="set-course" disabled></label>
+    </div>
+
+    <div class="setting-group">
+      <h3>Où regarder</h3>
+      <label class="row-toggle"><span>Chaînes TV France</span><input type="checkbox" id="set-tv-fr"></label>
+      <label class="row-toggle"><span>Streaming international</span><input type="checkbox" id="set-tv-stream"></label>
+    </div>
+
+    <div class="setting-group">
+      <h3>Rappels calendrier</h3>
+      <p class="hint">Alertes ajoutées à chaque session dans ton calendrier iPhone.</p>
+      <div class="pill-select" id="set-alarms"></div>
+      <label class="row-toggle"><span>Résumé du week-end</span><input type="checkbox" id="set-summary"></label>
+      <label class="row-field" id="row-summary-time"><span>Le vendredi à</span><input type="time" id="set-summary-time" step="900"></label>
+    </div>
+
+    <div class="setting-group">
+      <h3>Ajouter au calendrier</h3>
+      <p class="hint"><strong>Abonnement</strong> : se met à jour tout seul (horaires décalés, chaînes…). <strong>Export</strong> : une copie avec tes séries filtrées, sans mise à jour.</p>
+      <a class="btn primary" id="btn-subscribe" href="#">S'abonner au calendrier</a>
+      <button class="btn" id="btn-export">Exporter (.ics)</button>
+      <p class="hint small" id="subscribe-note"></p>
+    </div>
+
+    <div class="setting-group">
+      <h3>Séries suivies</h3>
+      <div class="series-grid" id="set-series"></div>
+    </div>
+
+    <p class="hint small center" id="settings-meta"></p>
+  </section>
+
+  <div class="toast" id="toast" role="status" hidden></div>
+
+  <script type="module" src="js/app.js"></script>
+</body>
+</html>

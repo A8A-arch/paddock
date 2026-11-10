@@ -1,0 +1,270 @@
+{
+  "updatedAt": "2026-11-10T12:00:00Z",
+  "checkedBy": "Recherche initiale (v1)",
+  "alerts": [],
+  "links": {
+    "mycanal": { "name": "myCANAL", "platform": "App / site Canal+", "url": "https://www.canalplus.com/" },
+    "f1tv": { "name": "F1 TV Pro", "platform": "Site officiel F1 (hors France)", "url": "https://f1tv.formula1.com/" },
+    "videopass": { "name": "MotoGP VideoPass", "platform": "Site officiel MotoGP", "url": "https://www.motogp.com/en/videopass" },
+    "fia-macau": { "name": "Direct FIA – Grand Prix de Macao", "platform": "Site officiel FIA", "url": "https://www.fia.com/events/fr-world-cup/season-2026/2026-macau-gp-live-stream" },
+    "supercars": { "name": "Supercars Plus", "platform": "Site officiel Supercars", "url": "https://www.supercars.com/" },
+    "fe": { "name": "Formula E", "platform": "Site officiel Formula E", "url": "https://www.fiaformulae.com/" }
+  },
+  "series": [
+    { "id": "f1", "name": "Formule 1", "short": "F1", "color": "#d6453f", "group": "Monoplace" },
+    { "id": "f2", "name": "Formule 2", "short": "F2", "color": "#4a8fc4", "group": "Monoplace" },
+    { "id": "f3", "name": "Formule 3", "short": "F3", "color": "#7f8fa3", "group": "Monoplace" },
+    { "id": "fe", "name": "Formule E", "short": "Formule E", "color": "#5b7fe0", "group": "Monoplace" },
+    { "id": "indycar", "name": "IndyCar", "short": "IndyCar", "color": "#c46a3f", "group": "Monoplace" },
+    { "id": "fia-fr-wc", "name": "FIA FR World Cup (Grand Prix de Macao)", "short": "FIA FR World Cup", "color": "#c49a5a", "group": "Monoplace" },
+    { "id": "wec", "name": "WEC – Championnat du monde d'endurance", "short": "WEC", "color": "#3f9e9b", "group": "Endurance" },
+    { "id": "imsa", "name": "IMSA SportsCar", "short": "IMSA", "color": "#5d9bb8", "group": "Endurance" },
+    { "id": "elms", "name": "European Le Mans Series", "short": "ELMS", "color": "#4c8a78", "group": "Endurance" },
+    { "id": "igtc", "name": "Intercontinental GT Challenge", "short": "IGTC", "color": "#a77fd6", "group": "Endurance" },
+    { "id": "nurb", "name": "24h du Nürburgring / NLS", "short": "Nürburgring", "color": "#6f9a4f", "group": "Endurance" },
+    { "id": "endurance", "name": "Autres courses d'endurance", "short": "Endurance", "color": "#5f9e6e", "group": "Endurance" },
+    { "id": "fia-gt-wc", "name": "FIA GT World Cup", "short": "FIA GT World Cup", "color": "#b48ad8", "group": "GT" },
+    { "id": "gtwc-eu", "name": "GT World Challenge Europe", "short": "GTWC Europe", "color": "#8e6fd1", "group": "GT" },
+    { "id": "gtwc-am", "name": "GT World Challenge America", "short": "GTWC America", "color": "#7f6bc0", "group": "GT" },
+    { "id": "gtwc-as", "name": "GT World Challenge Asia", "short": "GTWC Asia", "color": "#9a78c9", "group": "GT" },
+    { "id": "gtwc-au", "name": "GT World Challenge Australia", "short": "GTWC Australia", "color": "#7366b0", "group": "GT" },
+    { "id": "dtm", "name": "DTM", "short": "DTM", "color": "#b8b04a", "group": "GT" },
+    { "id": "supercars", "name": "Supercars Championship", "short": "Supercars", "color": "#c27840", "group": "Tourisme" },
+    { "id": "nascar", "name": "NASCAR Cup Series", "short": "NASCAR", "color": "#c9a740", "group": "Tourisme" },
+    { "id": "wrc", "name": "WRC – Championnat du monde des rallyes", "short": "WRC", "color": "#4fa36a", "group": "Rallye" },
+    { "id": "motogp", "name": "MotoGP", "short": "MotoGP", "color": "#d08a3a", "group": "Moto" },
+    { "id": "moto2", "name": "Moto2", "short": "Moto2", "color": "#b9824a", "group": "Moto" },
+    { "id": "moto3", "name": "Moto3", "short": "Moto3", "color": "#a07a58", "group": "Moto" },
+    { "id": "wsbk", "name": "WorldSBK", "short": "WSBK", "color": "#b45f5f", "group": "Moto" }
+  ],
+  "events": [
+    {
+      "id": "2026-supercars-sandown",
+      "series": "supercars",
+      "name": "Sandown 500",
+      "circuit": "Sandown Raceway, Melbourne",
+      "country": "Australie",
+      "tz": "Australia/Melbourne",
+      "tv": { "fr": [], "stream": ["supercars"] },
+      "note": "Course d'endurance de 500 km. Horaire du départ confirmé le jeudi.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course (500 km)", "date": "2026-11-15", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-f1-las-vegas",
+      "series": "f1",
+      "name": "GP de Las Vegas",
+      "circuit": "Las Vegas Strip Circuit",
+      "country": "États-Unis",
+      "tz": "America/Los_Angeles",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "f1tv"] },
+      "note": "Course de nuit : départ samedi 20h à Las Vegas, soit dimanche matin en France. Chaîne Canal+ exacte confirmée le jeudi.",
+      "sessions": [
+        { "id": "el1", "kind": "essais", "label": "Essais libres 1", "start": "2026-11-20T00:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el2", "kind": "essais", "label": "Essais libres 2", "start": "2026-11-20T04:00:00Z", "duration": 60, "status": "confirme" },
+        { "id": "el3", "kind": "essais", "label": "Essais libres 3", "start": "2026-11-21T00:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "qualif", "kind": "qualif", "label": "Qualifications", "start": "2026-11-21T04:00:00Z", "duration": 60, "status": "confirme" },
+        { "id": "course", "kind": "course", "label": "Grand Prix", "start": "2026-11-22T04:00:00Z", "duration": 120, "status": "confirme" }
+      ]
+    },
+    {
+      "id": "2026-f1-qatar",
+      "series": "f1",
+      "name": "GP du Qatar",
+      "circuit": "Lusail International Circuit",
+      "country": "Qatar",
+      "tz": "Asia/Qatar",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "f1tv"] },
+      "sessions": [
+        { "id": "el1", "kind": "essais", "label": "Essais libres 1", "start": "2026-11-27T13:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el2", "kind": "essais", "label": "Essais libres 2", "start": "2026-11-27T17:00:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el3", "kind": "essais", "label": "Essais libres 3", "start": "2026-11-28T14:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "qualif", "kind": "qualif", "label": "Qualifications", "start": "2026-11-28T18:00:00Z", "duration": 60, "status": "confirme" },
+        { "id": "course", "kind": "course", "label": "Grand Prix", "start": "2026-11-29T16:00:00Z", "duration": 120, "status": "confirme" }
+      ]
+    },
+    {
+      "id": "2026-f1-abu-dhabi",
+      "series": "f1",
+      "name": "GP d'Abu Dhabi",
+      "circuit": "Yas Marina",
+      "country": "Émirats arabes unis",
+      "tz": "Asia/Dubai",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "f1tv"] },
+      "note": "Dernière manche de la saison 2026.",
+      "sessions": [
+        { "id": "el1", "kind": "essais", "label": "Essais libres 1", "start": "2026-12-04T09:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el2", "kind": "essais", "label": "Essais libres 2", "start": "2026-12-04T13:00:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el3", "kind": "essais", "label": "Essais libres 3", "start": "2026-12-05T10:30:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "qualif", "kind": "qualif", "label": "Qualifications", "start": "2026-12-05T14:00:00Z", "duration": 60, "status": "confirme" },
+        { "id": "course", "kind": "course", "label": "Grand Prix", "start": "2026-12-06T13:00:00Z", "duration": 120, "status": "confirme" }
+      ]
+    },
+    {
+      "id": "2026-f2-qatar",
+      "series": "f2",
+      "name": "Lusail",
+      "circuit": "Lusail International Circuit",
+      "country": "Qatar",
+      "tz": "Asia/Qatar",
+      "tv": { "fr": ["Canal+ (à confirmer)"], "stream": ["f1tv"] },
+      "note": "Présence de la F2 et horaires à confirmer lors de la vérification du jeudi.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course principale", "date": "2026-11-29", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-f2-abu-dhabi",
+      "series": "f2",
+      "name": "Yas Marina",
+      "circuit": "Yas Marina",
+      "country": "Émirats arabes unis",
+      "tz": "Asia/Dubai",
+      "tv": { "fr": ["Canal+ (à confirmer)"], "stream": ["f1tv"] },
+      "note": "Présence de la F2 et horaires à confirmer lors de la vérification du jeudi.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course principale", "date": "2026-12-06", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-motogp-portugal",
+      "series": "motogp",
+      "name": "GP du Portugal",
+      "circuit": "Autódromo Internacional do Algarve, Portimão",
+      "country": "Portugal",
+      "tz": "Europe/Lisbon",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "note": "Horaires basés sur le format habituel du MotoGP, confirmés le jeudi.",
+      "sessions": [
+        { "id": "el1", "kind": "essais", "label": "Essais libres 1", "start": "2026-11-20T10:45:00Z", "duration": 45, "status": "provisoire" },
+        { "id": "practice", "kind": "essais", "label": "Practice", "start": "2026-11-20T15:00:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el2", "kind": "essais", "label": "Essais libres 2", "start": "2026-11-21T10:10:00Z", "duration": 30, "status": "provisoire" },
+        { "id": "qualif", "kind": "qualif", "label": "Qualifications", "start": "2026-11-21T10:50:00Z", "duration": 40, "status": "provisoire" },
+        { "id": "sprint", "kind": "sprint", "label": "Sprint", "start": "2026-11-21T15:00:00Z", "duration": 30, "status": "provisoire" },
+        { "id": "course", "kind": "course", "label": "Grand Prix", "start": "2026-11-22T13:00:00Z", "duration": 45, "status": "provisoire" }
+      ]
+    },
+    {
+      "id": "2026-moto2-portugal",
+      "series": "moto2",
+      "name": "GP du Portugal",
+      "circuit": "Autódromo Internacional do Algarve, Portimão",
+      "country": "Portugal",
+      "tz": "Europe/Lisbon",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "note": "Horaire repris du programme 2025, confirmé le jeudi.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course", "start": "2026-11-22T11:15:00Z", "duration": 40, "status": "provisoire" }
+      ]
+    },
+    {
+      "id": "2026-moto3-portugal",
+      "series": "moto3",
+      "name": "GP du Portugal",
+      "circuit": "Autódromo Internacional do Algarve, Portimão",
+      "country": "Portugal",
+      "tz": "Europe/Lisbon",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "note": "Horaire repris du programme 2025, confirmé le jeudi.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course", "start": "2026-11-22T14:30:00Z", "duration": 40, "status": "provisoire" }
+      ]
+    },
+    {
+      "id": "2026-motogp-valencia",
+      "series": "motogp",
+      "name": "GP de Valence",
+      "circuit": "Circuit Ricardo Tormo",
+      "country": "Espagne",
+      "tz": "Europe/Madrid",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "note": "Finale de la saison. Horaires basés sur le format habituel, confirmés le jeudi.",
+      "sessions": [
+        { "id": "el1", "kind": "essais", "label": "Essais libres 1", "start": "2026-11-27T09:45:00Z", "duration": 45, "status": "provisoire" },
+        { "id": "practice", "kind": "essais", "label": "Practice", "start": "2026-11-27T14:00:00Z", "duration": 60, "status": "provisoire" },
+        { "id": "el2", "kind": "essais", "label": "Essais libres 2", "start": "2026-11-28T09:10:00Z", "duration": 30, "status": "provisoire" },
+        { "id": "qualif", "kind": "qualif", "label": "Qualifications", "start": "2026-11-28T09:50:00Z", "duration": 40, "status": "provisoire" },
+        { "id": "sprint", "kind": "sprint", "label": "Sprint", "start": "2026-11-28T14:00:00Z", "duration": 30, "status": "provisoire" },
+        { "id": "course", "kind": "course", "label": "Grand Prix", "start": "2026-11-29T13:00:00Z", "duration": 45, "status": "provisoire" }
+      ]
+    },
+    {
+      "id": "2026-moto2-valencia",
+      "series": "moto2",
+      "name": "GP de Valence",
+      "circuit": "Circuit Ricardo Tormo",
+      "country": "Espagne",
+      "tz": "Europe/Madrid",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course", "date": "2026-11-29", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-moto3-valencia",
+      "series": "moto3",
+      "name": "GP de Valence",
+      "circuit": "Circuit Ricardo Tormo",
+      "country": "Espagne",
+      "tz": "Europe/Madrid",
+      "tv": { "fr": ["Canal+"], "stream": ["mycanal", "videopass"] },
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course", "date": "2026-11-29", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-macau-gt-world-cup",
+      "series": "fia-gt-wc",
+      "name": "Macao",
+      "circuit": "Circuit de Guia",
+      "country": "Macao",
+      "tz": "Asia/Macau",
+      "tv": { "fr": [], "stream": ["fia-macau"] },
+      "note": "Programme du 73e Grand Prix de Macao (19 au 22 novembre). Plateforme de diffusion confirmée le jeudi.",
+      "sessions": [
+        { "id": "qualif-race", "kind": "qualif", "label": "Course de qualification", "date": "2026-11-21", "status": "tbc" },
+        { "id": "course", "kind": "course", "label": "Course principale", "date": "2026-11-22", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-macau-gp-fr",
+      "series": "fia-fr-wc",
+      "name": "Grand Prix de Macao",
+      "circuit": "Circuit de Guia",
+      "country": "Macao",
+      "tz": "Asia/Macau",
+      "tv": { "fr": [], "stream": ["fia-macau"] },
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Grand Prix", "date": "2026-11-22", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-supercars-adelaide",
+      "series": "supercars",
+      "name": "Adelaide",
+      "circuit": "Adelaide Street Circuit",
+      "country": "Australie",
+      "tz": "Australia/Adelaide",
+      "tv": { "fr": [], "stream": ["supercars"] },
+      "note": "Date issue d'un calendrier provisoire, à confirmer.",
+      "sessions": [
+        { "id": "course", "kind": "course", "label": "Course", "date": "2026-11-29", "status": "tbc" }
+      ]
+    },
+    {
+      "id": "2026-fe-jeddah",
+      "series": "fe",
+      "name": "E-Prix de Djeddah",
+      "circuit": "Jeddah Corniche Circuit",
+      "country": "Arabie saoudite",
+      "tz": "Asia/Riyadh",
+      "tv": { "fr": ["Diffuseur à confirmer"], "stream": ["fe"] },
+      "note": "Ouverture de la saison 13 (Gen4), double course de nuit.",
+      "sessions": [
+        { "id": "course1", "kind": "course", "label": "Course 1 – E-Prix Unleashed", "date": "2026-12-18", "status": "tbc" },
+        { "id": "course2", "kind": "course", "label": "Course 2 – E-Prix", "date": "2026-12-19", "status": "tbc" }
+      ]
+    }
+  ]
+}
