@@ -1,6 +1,6 @@
 // Service worker : l'app s'ouvre même hors ligne, le programme est toujours rechargé en priorité depuis le réseau.
 // Changer VERSION à chaque publication du code (même valeur que dans index.html et app.js).
-const VERSION = "4";
+const VERSION = "5";
 const CACHE = `a8a-paddock-v${VERSION}`;
 const SHELL = ["./", "index.html", `css/styles.css?v=${VERSION}`, `js/app.js?v=${VERSION}`, `js/ics.js?v=${VERSION}`, "manifest.webmanifest", "icons/icon.svg"];
 
@@ -27,4 +27,26 @@ self.addEventListener("fetch", (e) => {
       })
       .catch(() => caches.match(e.request))
   );
+});
+
+// Notifications envoyées par le serveur A8A Paddock
+self.addEventListener("push", (e) => {
+  let d = {};
+  try { d = e.data ? e.data.json() : {}; } catch { d = { body: e.data?.text() }; }
+  e.waitUntil(self.registration.showNotification(d.title || "A8A Paddock", {
+    body: d.body || "",
+    tag: d.tag,
+    icon: "icons/icon-192.png",
+    badge: "icons/icon-192.png",
+    data: { url: d.url || "./" },
+  }));
+});
+
+self.addEventListener("notificationclick", (e) => {
+  e.notification.close();
+  const url = e.notification.data?.url || "./";
+  e.waitUntil(self.clients.matchAll({ type: "window", includeUncontrolled: true }).then((list) => {
+    const open = list.find((c) => "focus" in c);
+    return open ? open.focus() : self.clients.openWindow(url);
+  }));
 });

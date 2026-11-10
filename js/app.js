@@ -1,4 +1,4 @@
-import { flattenSessions, KIND_LABEL } from "./ics.js?v=4";
+import { flattenSessions, KIND_LABEL } from "./ics.js?v=5";
 
 // ---------- État & réglages ----------
 const DEFAULTS = {
@@ -44,7 +44,125 @@ let data = null;
 let sessions = [];
 const deviceTz = Intl.DateTimeFormat().resolvedOptions().timeZone;
 const $ = (sel) => document.querySelector(sel);
-const save = () => store.set(settings);
+const save = () => { store.set(settings); pushSyncSoon(); };
+
+// ---------- Notifications push (serveur Cloudflare) ----------
+const PUSH_SERVER = "https://a8a-paddock-push.antonin-rousseau18.workers.dev";
+const isIos = /iPhone|iPad|iPod/.test(navigator.userAgent);
+const isStandalone = () => matchMedia("(display-mode: standalone)").matches || navigator.standalone === true;
+const pushSupported = () => "serviceWorker" in navigator && "PushManager" in window && "Notification" in window;
+let pushSub = null;
+let pushBusy = false;
+
+const pushSettings = () => ({
+  notif: settings.notif, delay: settings.notifDelay, summary: settings.summary, summaryTime: settings.summaryTime, tz: deviceTz,
+});
+const keyBytes = (b64) => Uint8Array.from(atob(b64.replace(/-/g, "+").replace(/_/g, "/") + "===".slice((b64.length + 3) % 4)), (c) => c.charCodeAt(0));
+
+async function pushPost(path, body) {
+  const res = await fetch(PUSH_SERVER + path, { method: "POST", headers: { "Content-Type": "application/json" }, body: JSON.stringify(body) });
+  const out = await res.json().catch(() => ({}));
+  if (!res.ok) throw new Error(out.error || `erreur ${res.status}`);
+  return out;
+}
+
+// Envoie l'abonnement + les réglages au serveur (seulement s'ils ont changé, ou une fois par jour)
+async function pushSync(force = false) {
+  if (!pushSub) return;
+  const sig = JSON.stringify([pushSub.endpoint, pushSettings(), new Date().toDateString()]);
+  let last = null;
+  try { last = localStorage.getItem("paddock:pushsig"); } catch { /* */ }
+  if (!force && sig === last) return;
+  await pushPost("/subscribe", { sub: pushSub.toJSON(), settings: pushSettings() });
+  try { localStorage.setItem("paddock:pushsig", sig); } catch { /* */ }
+}
+function pushSyncSoon() {
+  if (!pushSub) return;
+  clearTimeout(pushSyncSoon.t);
+  pushSyncSoon.t = setTimeout(() => pushSync().catch(() => toast("Réglages non envoyés (hors ligne ?)")), 800);
+}
+
+async function enablePush() {
+  if (pushBusy) return;
+  if (!pushSupported()) {
+    toast(isIos && !isStandalone() ? "Ajoute d'abord l'app à l'écran d'accueil" : "Notifications non disponibles sur cet appareil");
+    return;
+  }
+  pushBusy = true;
+  try {
+    // La demande d'autorisation doit partir directement du toucher (exigence iPhone)
+    const perm = await Notification.requestPermission();
+    if (perm !== "granted") { toast("Notifications refusées"); return; }
+    const reg = await navigator.serviceWorker.ready;
+    const { key } = await (await fetch(PUSH_SERVER + "/vapid")).json();
+    pushSub = (await reg.pushManager.getSubscription())
+      || (await reg.pushManager.subscribe({ userVisibleOnly: true, applicationServerKey: keyBytes(key) }));
+    await pushSync(true);
+    toast(Object.keys(settings.notif).length ? "Notifications activées 🔔" : "Activées : choisis maintenant tes séries 🔔");
+  } catch (e) {
+    toast("Échec de l'activation : " + e.message);
+  } finally {
+    pushBusy = false;
+    renderPushStatus();
+  }
+}
+
+async function testPush() {
+  try {
+    await pushSync();
+    const r = await pushPost("/test", { endpoint: pushSub.endpoint });
+    toast(r.ok ? "Notification test envoyée" : `Le service push a répondu ${r.status}`);
+  } catch (e) { toast("Échec du test : " + e.message); }
+}
+
+async function disablePush() {
+  try {
+    if (pushSub) {
+      await pushPost("/unsubscribe", { endpoint: pushSub.endpoint }).catch(() => {});
+      await pushSub.unsubscribe();
+    }
+  } catch { /* */ }
+  pushSub = null;
+  try { localStorage.removeItem("paddock:pushsig"); } catch { /* */ }
+  toast("Notifications désactivées sur cet appareil");
+  renderPushStatus();
+}
+
+function renderPushStatus() {
+  const btn = $("#btn-notif-enable");
+  const off = $("#btn-notif-off");
+  let status;
+  if (pushSub) {
+    btn.textContent = "Envoyer une notification test";
+    btn.classList.remove("primary");
+    off.hidden = false;
+    status = Object.keys(settings.notif).length
+      ? "✓ Activées sur cet appareil. Tes choix ci-dessous sont pris en compte automatiquement."
+      : "✓ Activées. Choisis au moins une série avec 🔔 pour recevoir des rappels.";
+  } else {
+    btn.textContent = "Activer les notifications";
+    btn.classList.add("primary");
+    off.hidden = true;
+    if (isIos && !isStandalone()) status = "Sur iPhone, ajoute d'abord l'app à l'écran d'accueil (Safari → Partager → Sur l'écran d'accueil), puis ouvre-la depuis l'icône.";
+    else if (!pushSupported()) status = "Cet appareil ou ce navigateur ne gère pas les notifications.";
+    else if (Notification.permission === "denied") status = isIos
+      ? "Notifications bloquées : Réglages de l'iPhone → Notifications → A8A Paddock → Autoriser."
+      : "Notifications bloquées dans les réglages du navigateur.";
+    else status = "Chaque appareil s'active séparément. Tes choix sont déjà enregistrés.";
+  }
+  $("#notif-status").textContent = status;
+}
+
+async function initPush() {
+  if (!pushSupported()) return renderPushStatus();
+  try {
+    const reg = await navigator.serviceWorker.ready;
+    pushSub = await reg.pushManager.getSubscription();
+    if (pushSub && Notification.permission !== "granted") pushSub = null;
+    if (pushSub) pushSync().catch(() => {});
+  } catch { pushSub = null; }
+  renderPushStatus();
+}
 
 // ---------- Formatage ----------
 const fmt = (opts, tz) => new Intl.DateTimeFormat("fr-FR", { ...opts, ...(tz ? { timeZone: tz } : {}) });
@@ -246,12 +364,7 @@ function renderNotifSummary() {
   $("#set-notif-delay").innerHTML = ALARM_PRESETS.map((p) =>
     `<button class="pill" data-ndelay="${p.key}" aria-pressed="${settings.notifDelay === p.key}">${p.label}</button>`).join("");
   $("#notif-delay-hint").textContent = ALARM_PRESETS.find((p) => p.key === settings.notifDelay)?.hint || "";
-
-  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
-  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
-  let status = "Bientôt disponible : le serveur de notifications est en cours d'installation. Tes choix sont déjà enregistrés.";
-  if (ios && !standalone) status = "Sur iPhone, ajoute d'abord l'app à l'écran d'accueil (Safari → Partager → Sur l'écran d'accueil), puis ouvre-la depuis l'icône.";
-  $("#notif-status").textContent = status;
+  renderPushStatus();
 }
 
 function setFilter(ids) {
@@ -397,7 +510,8 @@ function bindSettings() {
     settings.notifDelay = b.dataset.ndelay; save(); renderSettings();
   });
   $("#btn-notif-series").addEventListener("click", () => { renderFilterSheet(); openSheet($("#sheet-filter")); });
-  $("#btn-notif-enable").addEventListener("click", () => toast("Serveur de notifications pas encore installé"));
+  $("#btn-notif-enable").addEventListener("click", () => (pushSub ? testPush() : enablePush()));
+  $("#btn-notif-off").addEventListener("click", disablePush);
 }
 
 function toast(msg) {
@@ -468,3 +582,4 @@ load();
 if ("serviceWorker" in navigator) {
   navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => reg.update()).catch(() => {});
 }
+initPush();

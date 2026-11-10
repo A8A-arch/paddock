@@ -1,0 +1,53 @@
+name: Serveur de notifications
+
+on:
+  push:
+    branches: [main]
+    paths: ["worker/**", ".github/workflows/push-server.yml"]
+  workflow_dispatch:
+
+concurrency:
+  group: push-server
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+
+      - name: Vérifier la clé Cloudflare
+        run: |
+          if [ -z "$CLOUDFLARE_API_TOKEN" ]; then
+            echo "::error::Le secret CLOUDFLARE_API_TOKEN n'est pas encore enregistré dans GitHub."
+            exit 1
+          fi
+
+      - name: Créer (si besoin) le stockage des abonnements
+        run: |
+          list() { npx --yes wrangler@4 kv namespace list 2>/dev/null; }
+          find_id() { node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=JSON.parse(s.slice(s.indexOf("[")));const n=a.find(x=>/paddock-push-subs/.test(x.title));process.stdout.write(n?n.id:"")})'; }
+          ID=$(list | find_id)
+          if [ -z "$ID" ]; then
+            npx --yes wrangler@4 kv namespace create paddock-push-subs
+            ID=$(list | find_id)
+          fi
+          if [ -z "$ID" ]; then echo "::error::Stockage KV introuvable"; exit 1; fi
+          echo "Stockage KV : $ID"
+          sed -i "s/KV_ID_PLACEHOLDER/$ID/" wrangler.toml
+
+      - name: Déployer le serveur
+        run: npx --yes wrangler@4 deploy
+
+      - name: Vérifier qu'il répond
+        run: |
+          sleep 5
+          curl -fsS https://a8a-paddock-push.antonin-rousseau18.workers.dev/vapid

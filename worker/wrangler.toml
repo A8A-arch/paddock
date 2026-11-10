@@ -1,0 +1,14 @@
+name = "a8a-paddock-push"
+main = "src/index.js"
+compatibility_date = "2025-09-01"
+workers_dev = true
+account_id = "3446cd444fcd26f2dc8fad21b8c3c669"
+
+# Toutes les minutes : rappels, résumé, changements d'horaire, direction de course F1
+[triggers]
+crons = ["* * * * *"]
+
+# Abonnements et réglages des appareils (l'identifiant est rempli au déploiement)
+[[kv_namespaces]]
+binding = "KV"
+id = "KV_ID_PLACEHOLDER"
