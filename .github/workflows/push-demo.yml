@@ -1,0 +1,25 @@
+name: Notification de démo
+
+on:
+  workflow_dispatch:
+
+jobs:
+  demo:
+    runs-on: ubuntu-latest
+    env:
+      CLOUDFLARE_API_TOKEN: ${{ secrets.CLOUDFLARE_API_TOKEN }}
+    defaults:
+      run:
+        working-directory: worker
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+      - name: Envoyer « course dans 15 min » à tous les appareils
+        run: |
+          ID=$(npx --yes wrangler@4 kv namespace list 2>/dev/null | node -e 'let s="";process.stdin.on("data",d=>s+=d).on("end",()=>{const a=JSON.parse(s.slice(s.indexOf("[")));process.stdout.write((a.find(x=>/paddock-push-subs/.test(x.title))||{}).id||"")})')
+          # Les fichiers restent sur la machine de GitHub, rien n'est affiché dans le journal
+          npx --yes wrangler@4 kv key get subs --namespace-id "$ID" --remote > "$RUNNER_TEMP/subs.json" 2>/dev/null
+          npx --yes wrangler@4 kv key get vapid --namespace-id "$ID" --remote > "$RUNNER_TEMP/vapid.json" 2>/dev/null
+          node demo.mjs "$RUNNER_TEMP/subs.json" "$RUNNER_TEMP/vapid.json"
