@@ -42,8 +42,10 @@
     </nav>
 
     <div class="filter" id="filter">
-      <i class="filter-dot" aria-hidden="true"></i>
-      <select id="series-filter" aria-label="Filtrer par série"></select>
+      <button class="filter-open" id="filter-open" aria-haspopup="dialog">
+        <span class="filter-dots" id="filter-dots" aria-hidden="true"></span>
+        <span class="filter-label" id="filter-label">Toutes les séries</span>
+      </button>
       <svg class="filter-caret" viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M7 10l5 5 5-5z"/></svg>
       <button class="filter-clear" id="filter-clear" aria-label="Afficher toutes les séries">✕</button>
     </div>
@@ -56,6 +58,18 @@
   <!-- Détail d'une session -->
   <div class="sheet-backdrop" id="sheet-backdrop" hidden></div>
   <section class="sheet" id="sheet-detail" role="dialog" aria-modal="true" aria-labelledby="detail-title" hidden></section>
+
+  <!-- Filtre multi-séries -->
+  <section class="sheet" id="sheet-filter" role="dialog" aria-modal="true" aria-labelledby="filter-title" hidden>
+    <div class="sheet-handle"></div>
+    <div class="sheet-head">
+      <h2 id="filter-title">Séries à afficher</h2>
+      <button class="text-btn" data-close>OK</button>
+    </div>
+    <p class="hint">Coche autant de séries que tu veux, toutes catégories confondues. Rien de coché = toutes les séries.</p>
+    <div id="filter-list"></div>
+    <button class="btn" id="filter-reset">Tout décocher</button>
+  </section>
 
   <!-- Réglages -->
   <section class="sheet" id="sheet-settings" role="dialog" aria-modal="true" aria-labelledby="settings-title" hidden>

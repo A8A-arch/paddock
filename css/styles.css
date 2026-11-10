@@ -111,17 +111,34 @@ main { max-width: 680px; margin: 0 auto; padding: 14px 16px 0; }
   background: var(--surface); border: 1px solid var(--border); border-radius: 12px;
   margin-bottom: 14px;
 }
-.filter.active { border-color: color-mix(in srgb, var(--c) 55%, var(--border)); background: color-mix(in srgb, var(--c) 9%, var(--surface)); }
-.filter-dot { position: absolute; left: 14px; width: 9px; height: 9px; border-radius: 50%; background: var(--c); pointer-events: none; }
-.filter select {
-  appearance: none; -webkit-appearance: none; flex: 1; min-width: 0;
-  background: transparent; border: 0; color: var(--text); font: inherit; font-size: 15px; font-weight: 500;
-  padding: 11px 40px 11px 32px; cursor: pointer; outline: none;
+.filter.active { border-color: color-mix(in srgb, var(--accent) 45%, var(--border)); }
+.filter-open {
+  flex: 1; min-width: 0; display: flex; align-items: center; gap: 10px;
+  background: transparent; border: 0; color: var(--text); font-size: 15px; font-weight: 500;
+  padding: 11px 64px 11px 14px; cursor: pointer; text-align: left;
 }
-.filter select option, .filter select optgroup { background: var(--surface); color: var(--text); }
+.filter-dots { display: flex; flex: none; }
+.filter-dots i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); margin-right: -2px; box-shadow: 0 0 0 2px var(--surface); }
+.filter-label { white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+
+/* Liste à cocher des séries */
+.f-group { border-top: 1px solid var(--border); padding: 10px 0 4px; }
+.f-group-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
+.f-group-head h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0; font-weight: 600; }
+.f-group-head button { background: none; border: 0; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
+.f-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; cursor: pointer; }
+.f-row i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
+.f-row span { flex: 1; }
+.f-row input {
+  appearance: none; -webkit-appearance: none; width: 22px; height: 22px; flex: none; margin: 0;
+  border: 2px solid var(--border); border-radius: 6px; display: grid; place-items: center; cursor: pointer;
+}
+.f-row input:checked { background: var(--accent); border-color: var(--accent); }
+.f-row input:checked::after { content: ""; width: 6px; height: 11px; border: solid #fff; border-width: 0 2px 2px 0; transform: translateY(-1px) rotate(45deg); }
+#filter-reset { margin-top: 12px; }
 .filter-caret { position: absolute; right: 12px; color: var(--muted); pointer-events: none; }
 .filter-clear {
-  display: none; position: absolute; right: 36px; background: none; border: 0; color: var(--muted);
+  display: none; position: absolute; right: 34px; background: none; border: 0; color: var(--muted);
   font-size: 13px; padding: 6px 8px; cursor: pointer;
 }
 .filter.active .filter-clear { display: block; }

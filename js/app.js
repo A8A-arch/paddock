@@ -10,7 +10,7 @@ const DEFAULTS = {
   summary: true,
   summaryTime: "18:00",
   series: null,          // null = toutes les séries suivies
-  chip: "all",           // filtre rapide de la liste
+  filter: null,          // filtre rapide de la liste : null = toutes, sinon liste d'ids
 };
 const ALARM_PRESETS = [
   { key: "15", label: "15 min" },
@@ -24,6 +24,8 @@ const store = {
   get() {
     try {
       const saved = JSON.parse(localStorage.getItem("paddock:settings") || "{}");
+      if (saved.chip && saved.chip !== "all" && !saved.filter) saved.filter = [saved.chip]; // ancien filtre à choix unique
+      delete saved.chip;
       return { ...DEFAULTS, ...saved, kinds: { ...DEFAULTS.kinds, ...(saved.kinds || {}) } };
     }
     catch { return { ...DEFAULTS }; }
@@ -80,7 +82,7 @@ function weekendBounds(now = Date.now()) {
 function followed(s) {
   if (settings.series && !settings.series.includes(s.series.id)) return false;
   if (!settings.kinds[s.kind]) return false;
-  if (settings.chip !== "all" && s.series.id !== settings.chip) return false;
+  if (settings.filter && !settings.filter.includes(s.series.id)) return false;
   return true;
 }
 
@@ -132,8 +134,8 @@ function renderHero() {
   const s = nextSession();
   if (!s) {
     hero.style.removeProperty("--series");
-    const msg = settings.chip !== "all"
-      ? "Aucun horaire confirmé pour cette série pour l'instant."
+    const msg = settings.filter
+      ? "Aucun horaire confirmé pour les séries choisies pour l'instant."
       : "Rien de prévu pour l'instant dans tes séries. Le programme est vérifié chaque jeudi.";
     hero.innerHTML = `<div class="hero-label">Prochaine session</div><p class="hero-empty">${msg}</p>`;
     hero.onclick = null;
@@ -174,19 +176,48 @@ function tick(s) {
   tickTimer = setInterval(draw, 1000);
 }
 
+function filterableSeries() {
+  return data.series.filter((s) => !settings.series || settings.series.includes(s.id));
+}
+
 function renderFilter() {
-  const list = data.series.filter((s) => !settings.series || settings.series.includes(s.id));
-  if (settings.chip !== "all" && !list.some((s) => s.id === settings.chip)) settings.chip = "all";
+  const list = filterableSeries();
+  if (settings.filter) {
+    settings.filter = settings.filter.filter((id) => list.some((s) => s.id === id));
+    if (!settings.filter.length) settings.filter = null;
+  }
+  const chosen = settings.filter ? list.filter((s) => settings.filter.includes(s.id)) : [];
+  let label = "Toutes les séries";
+  if (chosen.length === 1) label = chosen[0].name;
+  else if (chosen.length > 1) {
+    label = chosen.slice(0, 2).map((s) => s.short).join(", ") + (chosen.length > 2 ? ` +${chosen.length - 2}` : "");
+  }
+  $("#filter-label").textContent = label;
+  $("#filter-dots").innerHTML = chosen.length
+    ? chosen.slice(0, 4).map((s) => `<i style="--c:${s.color}"></i>`).join("")
+    : `<i style="--c:var(--muted)"></i>`;
+  $("#filter").classList.toggle("active", chosen.length > 0);
+}
+
+function renderFilterSheet() {
+  const list = filterableSeries();
   const groups = [...new Set(list.map((s) => s.group))];
-  const sel = $("#series-filter");
-  sel.innerHTML = `<option value="all">Toutes les séries</option>` + groups.map((g) =>
-    `<optgroup label="${escapeHtml(g)}">` +
-    list.filter((s) => s.group === g).map((s) => `<option value="${s.id}">${escapeHtml(s.name)}</option>`).join("") +
-    `</optgroup>`).join("");
-  sel.value = settings.chip;
-  const cur = list.find((s) => s.id === settings.chip);
-  $("#filter").style.setProperty("--c", cur ? cur.color : "var(--muted)");
-  $("#filter").classList.toggle("active", !!cur);
+  const sel = new Set(settings.filter || []);
+  $("#filter-list").innerHTML = groups.map((g) => {
+    const items = list.filter((s) => s.group === g);
+    const all = items.every((s) => sel.has(s.id));
+    return `<div class="f-group">
+      <div class="f-group-head"><h3>${escapeHtml(g)}</h3>
+        <button data-group="${escapeHtml(g)}">${all ? "Tout décocher" : "Tout cocher"}</button></div>
+      ${items.map((s) => `<label class="f-row" style="--c:${s.color}"><i></i><span>${escapeHtml(s.name)}</span>
+        <input type="checkbox" data-fseries="${s.id}" ${sel.has(s.id) ? "checked" : ""}></label>`).join("")}
+    </div>`;
+  }).join("");
+}
+
+function setFilter(ids) {
+  settings.filter = ids.length ? ids : null;
+  save(); render(); renderFilterSheet();
 }
 
 function renderList() {
@@ -408,10 +439,20 @@ document.querySelector(".segmented").addEventListener("click", (e) => {
   const b = e.target.closest("[data-view]"); if (!b) return;
   settings.view = b.dataset.view; save(); render();
 });
-$("#series-filter").addEventListener("change", (e) => {
-  settings.chip = e.target.value; save(); render();
+$("#filter-open").addEventListener("click", () => { renderFilterSheet(); openSheet($("#sheet-filter")); });
+$("#filter-clear").addEventListener("click", () => setFilter([]));
+$("#filter-reset").addEventListener("click", () => setFilter([]));
+$("#filter-list").addEventListener("change", () => {
+  setFilter([...document.querySelectorAll("[data-fseries]")].filter((i) => i.checked).map((i) => i.dataset.fseries));
 });
-$("#filter-clear").addEventListener("click", () => { settings.chip = "all"; save(); render(); });
+$("#filter-list").addEventListener("click", (e) => {
+  const b = e.target.closest("[data-group]"); if (!b) return;
+  const ids = filterableSeries().filter((s) => s.group === b.dataset.group).map((s) => s.id);
+  const cur = new Set(settings.filter || []);
+  const allOn = ids.every((id) => cur.has(id));
+  ids.forEach((id) => (allOn ? cur.delete(id) : cur.add(id)));
+  setFilter([...cur]);
+});
 $("#list").addEventListener("click", (e) => {
   if (e.target.closest("a")) return; // lien de diffusion : on le laisse s'ouvrir
   const a = e.target.closest("[data-uid]"); if (a) openDetail(a.dataset.uid);
