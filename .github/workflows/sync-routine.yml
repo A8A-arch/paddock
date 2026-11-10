@@ -20,7 +20,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-      - name: Vérifier le JSON et les calendriers
+      - name: Vérifier le JSON
         run: |
           node -e "JSON.parse(require('fs').readFileSync('data/events.json','utf8'))"
           node scripts/build-ics.mjs

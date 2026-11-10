@@ -7,7 +7,7 @@ Dépôt : `A8A-arch/paddock`, branche `main`.
 
 ---
 
-Tu mets à jour le calendrier de l'app Paddock (`data/events.json`). C'est la seule source de vérité de l'app et des calendriers iPhone abonnés. Chaque push sur `main` republie automatiquement l'app.
+Tu mets à jour le calendrier de l'app Paddock (`data/events.json`). C'est la seule source de vérité de l'app et du serveur de notifications (qui relit ce fichier chaque minute et prévient les abonnés si un horaire change). Chaque push sur `main` republie automatiquement l'app.
 
 ## Ce que tu fais selon le jour
 
@@ -22,7 +22,7 @@ F1, F2, F3, Formule E, IndyCar, FIA FR World Cup (Grand Prix de Macao), FIA GT W
 
 ## Sessions à enregistrer
 
-`essais` (essais libres, practice, warm-up), `qualif`, `sprint` et `course`. Les essais sont affichés dans l'app mais jamais ajoutés au calendrier : c'est géré automatiquement, ne change rien.
+`essais` (essais libres, practice, warm-up), `qualif`, `sprint` et `course`. Les essais sont affichés dans l'app ; chaque utilisateur choisit s'il veut être notifié : ne change rien.
 
 ## Vérifier chaque information
 
@@ -48,7 +48,7 @@ Supprime les alertes dont la date `until` est passée.
 ## Règles
 
 - Ne supprime jamais un événement passé de moins de 7 jours. Tu peux supprimer ceux de plus de 30 jours.
-- Garde des `id` stables : un `id` modifié crée un doublon dans le calendrier iPhone. Format : `AAAA-serie-lieu`.
+- Garde des `id` stables : un `id` modifié fait perdre le suivi des changements d'horaire (et donc les alertes). Format : `AAAA-serie-lieu`.
 - Mets à jour `updatedAt` (UTC) et `checkedBy` (par exemple « Routine jeudi »).
 - Vérifie que le JSON est valide avant de committer.
 - Message de commit : `Vérif <jour> : <résumé des changements>`. S'il n'y a aucun changement, mets seulement `updatedAt` à jour et commite quand même.

@@ -1,6 +1,7 @@
-// Génère les calendriers d'abonnement (calendar/*.ics) à partir de data/events.json.
-// Lancé automatiquement par GitHub Actions à chaque mise à jour du dépôt.
-// Usage local : node scripts/build-ics.mjs
+// L'abonnement calendrier est arrêté (remplacé par les notifications push).
+// On publie des calendriers VIDES aux mêmes adresses : un iPhone encore abonné efface ainsi
+// les anciens événements et leurs rappels, au lieu de les garder indéfiniment.
+// Lancé automatiquement par GitHub Actions. Usage local : node scripts/build-ics.mjs
 import { readFileSync, writeFileSync, mkdirSync } from "node:fs";
 import { buildICS, SUB_ALARMS, subscriptionFile } from "../js/ics.js";
 
@@ -9,19 +10,20 @@ const data = JSON.parse(readFileSync(new URL("data/events.json", root), "utf8"))
 const outDir = new URL("calendar/", root);
 mkdirSync(outDir, { recursive: true });
 
+const empty = buildICS({ ...data, events: [] }, {
+  name: "A8A Paddock – Courses (arrêté)",
+  alarms: [],
+  kinds: [],
+  summary: { enabled: false, time: "20:00", tz: "Europe/Paris" },
+});
+
 let n = 0;
 for (const alarmKey of Object.keys(SUB_ALARMS)) {
   for (const qualif of [true, false]) {
     for (const summary of [true, false]) {
-      const ics = buildICS(data, {
-        name: "A8A Paddock – Courses",
-        alarms: SUB_ALARMS[alarmKey],
-        kinds: qualif ? ["qualif", "sprint", "course"] : ["sprint", "course"],
-        summary: { enabled: summary, time: "20:00", tz: "Europe/Paris" },
-      });
-      writeFileSync(new URL(subscriptionFile({ alarmKey, qualif, summary }), outDir), ics);
+      writeFileSync(new URL(subscriptionFile({ alarmKey, qualif, summary }), outDir), empty);
       n++;
     }
   }
 }
-console.log(`${n} calendriers générés dans calendar/`);
+console.log(`${n} calendriers vides publiés dans calendar/`);
