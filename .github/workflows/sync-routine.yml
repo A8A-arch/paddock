@@ -1,0 +1,39 @@
+# Si la routine Claude n'a pas le droit d'écrire sur main, elle pousse sur une branche claude/...
+# Ce workflow vérifie les données, les reporte sur main puis relance la publication.
+name: Intégrer la vérif de la routine
+
+on:
+  push:
+    branches: ["claude/**"]
+
+permissions:
+  contents: write
+  actions: write
+
+jobs:
+  merge:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Vérifier le JSON et les calendriers
+        run: |
+          node -e "JSON.parse(require('fs').readFileSync('data/events.json','utf8'))"
+          node scripts/build-ics.mjs
+      - name: Reporter sur main
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git fetch origin main
+          git checkout -B main origin/main
+          git merge --no-edit "origin/${GITHUB_REF_NAME}"
+          git push origin main
+          git push origin --delete "${GITHUB_REF_NAME}"
+      - name: Relancer la publication
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh workflow run deploy.yml --ref main
