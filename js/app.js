@@ -1,4 +1,4 @@
-import { flattenSessions, buildICS, KIND_LABEL, CALENDAR_KINDS, subscriptionFile, SUB_ALARMS } from "./ics.js";
+import { flattenSessions, KIND_LABEL } from "./ics.js";
 
 // ---------- État & réglages ----------
 const DEFAULTS = {
@@ -6,18 +6,21 @@ const DEFAULTS = {
   kinds: { essais: true, qualif: true, sprint: true, course: true },
   tvFr: true,
   tvStream: true,
-  alarmKey: "60-15",
   summary: true,
-  summaryTime: "18:00",
+  summaryTime: "20:00",  // résumé la veille au soir de la 1re session du week-end
   series: null,          // null = toutes les séries suivies
   filter: null,          // filtre rapide de la liste : null = toutes, sinon liste d'ids
+  notif: {},             // notifications par série : { f1: { qualif: true, course: true, essais: false } }
+  notifDelay: "60-15",   // délai des rappels push
 };
+const NOTIF_DEFAULT = { qualif: true, course: true, essais: false };
+const NOTIF_KINDS = [["qualif", "Qualifs"], ["course", "Courses"], ["essais", "Essais"]];
 const ALARM_PRESETS = [
-  { key: "15", label: "15 min" },
-  { key: "30", label: "30 min" },
-  { key: "60", label: "1 h" },
-  { key: "60-15", label: "1 h + 15 min" },
-  { key: "120-30", label: "2 h + 30 min" },
+  { key: "15", label: "15 minutes" },
+  { key: "30", label: "30 minutes" },
+  { key: "60", label: "1 heure" },
+  { key: "60-15", label: "1 heure et 15 minutes", hint: "Deux rappels : 1 heure avant, puis 15 minutes avant." },
+  { key: "120-30", label: "2 heures et 30 minutes", hint: "Deux rappels : 2 heures avant, puis 30 minutes avant." },
 ];
 
 const store = {
@@ -26,6 +29,9 @@ const store = {
       const saved = JSON.parse(localStorage.getItem("paddock:settings") || "{}");
       if (saved.chip && saved.chip !== "all" && !saved.filter) saved.filter = [saved.chip]; // ancien filtre à choix unique
       delete saved.chip;
+      if (saved.summaryTime === "18:00") saved.summaryTime = "20:00"; // ancien « vendredi 18h »
+      if (saved.alarmKey && !saved.notifDelay) saved.notifDelay = saved.alarmKey;
+      delete saved.alarmKey; delete saved.series;
       return { ...DEFAULTS, ...saved, kinds: { ...DEFAULTS.kinds, ...(saved.kinds || {}) } };
     }
     catch { return { ...DEFAULTS }; }
@@ -203,16 +209,49 @@ function renderFilterSheet() {
   const list = filterableSeries();
   const groups = [...new Set(list.map((s) => s.group))];
   const sel = new Set(settings.filter || []);
-  $("#filter-list").innerHTML = groups.map((g) => {
-    const items = list.filter((s) => s.group === g);
-    const all = items.every((s) => sel.has(s.id));
-    return `<div class="f-group">
-      <div class="f-group-head"><h3>${escapeHtml(g)}</h3>
-        <button data-group="${escapeHtml(g)}">${all ? "Tout décocher" : "Tout cocher"}</button></div>
-      ${items.map((s) => `<label class="f-row" style="--c:${s.color}"><i></i><span>${escapeHtml(s.name)}</span>
-        <input type="checkbox" data-fseries="${s.id}" ${sel.has(s.id) ? "checked" : ""}></label>`).join("")}
-    </div>`;
-  }).join("");
+  const bell = `<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path fill="currentColor" d="M12 22a2.5 2.5 0 0 0 2.45-2h-4.9A2.5 2.5 0 0 0 12 22Zm7-6V11a7 7 0 0 0-5.5-6.84V3.5a1.5 1.5 0 0 0-3 0v.66A7 7 0 0 0 5 11v5l-2 2v1h18v-1Z"/></svg>`;
+  $("#filter-list").innerHTML =
+    `<div class="f-cols"><span>Voir</span><span>Notifs</span></div>` +
+    groups.map((g) => {
+      const items = list.filter((s) => s.group === g);
+      const all = items.every((s) => sel.has(s.id));
+      return `<div class="f-group">
+        <div class="f-group-head"><h3>${escapeHtml(g)}</h3>
+          <button data-group="${escapeHtml(g)}">${all ? "Tout décocher" : "Tout cocher"}</button></div>
+        ${items.map((s) => {
+          const n = settings.notif[s.id];
+          return `<div class="f-item" style="--c:${s.color}">
+            <div class="f-row">
+              <i></i><span>${escapeHtml(s.name)}</span>
+              <input type="checkbox" data-fseries="${s.id}" ${sel.has(s.id) ? "checked" : ""} aria-label="Afficher ${escapeHtml(s.name)}">
+              <button class="bell" data-bell="${s.id}" aria-pressed="${!!n}" aria-label="Notifications ${escapeHtml(s.name)}">${bell}</button>
+            </div>
+            ${n ? `<div class="f-kinds">${NOTIF_KINDS.map(([k, l]) =>
+              `<button class="pill small" data-nkind="${k}" data-nseries="${s.id}" aria-pressed="${!!n[k]}">${n[k] ? "✓ " : ""}${l}</button>`).join("")}</div>` : ""}
+          </div>`;
+        }).join("")}
+      </div>`;
+    }).join("");
+}
+
+function renderNotifSummary() {
+  const on = data.series.filter((s) => settings.notif[s.id]);
+  $("#notif-summary").innerHTML = on.length
+    ? on.map((s) => {
+        const n = settings.notif[s.id];
+        const kinds = NOTIF_KINDS.filter(([k]) => n[k]).map(([, l]) => l).join(", ") || "aucune session";
+        return `<div class="ns-row" style="--c:${s.color}"><i></i><b>${escapeHtml(s.short)}</b><span>${escapeHtml(kinds)}</span></div>`;
+      }).join("")
+    : `<p class="hint">Aucune série avec 🔔 pour l'instant.</p>`;
+  $("#set-notif-delay").innerHTML = ALARM_PRESETS.map((p) =>
+    `<button class="pill" data-ndelay="${p.key}" aria-pressed="${settings.notifDelay === p.key}">${p.label}</button>`).join("");
+  $("#notif-delay-hint").textContent = ALARM_PRESETS.find((p) => p.key === settings.notifDelay)?.hint || "";
+
+  const standalone = matchMedia("(display-mode: standalone)").matches || navigator.standalone;
+  const ios = /iPhone|iPad|iPod/.test(navigator.userAgent);
+  let status = "Bientôt disponible : le serveur de notifications est en cours d'installation. Tes choix sont déjà enregistrés.";
+  if (ios && !standalone) status = "Sur iPhone, ajoute d'abord l'app à l'écran d'accueil (Safari → Partager → Sur l'écran d'accueil), puis ouvre-la depuis l'icône.";
+  $("#notif-status").textContent = status;
 }
 
 function setFilter(ids) {
@@ -314,13 +353,8 @@ function openDetail(uid) {
       ${settings.tvFr ? `<dt>TV France</dt><dd>${escapeHtml(tvFr)}</dd>` : ""}
       ${settings.tvStream ? `<dt>En ligne</dt><dd>${tvSt}</dd>` : ""}
     </dl>
-    ${s.note || ev.note ? `<div class="note">${escapeHtml([s.note, ev.note].filter(Boolean).join(" · "))}</div>` : ""}
-    ${s.kind === "essais"
-      ? `<p class="hint small center">Les essais libres ne sont jamais ajoutés au calendrier (pas de rappel).</p>`
-      : s.startMs ? `<button class="btn primary" id="btn-add-one">Ajouter au calendrier</button>` : ""}`;
+    ${s.note || ev.note ? `<div class="note">${escapeHtml([s.note, ev.note].filter(Boolean).join(" · "))}</div>` : ""}`;
   openSheet(sheet);
-  const b = $("#btn-add-one");
-  if (b) b.onclick = () => exportIcs({ onlyUid: s.uid });
 }
 
 // ---------- Sheets ----------
@@ -335,13 +369,8 @@ function closeSheets() {
 }
 
 // ---------- Réglages ----------
-function subscriptionUrl() {
-  const file = subscriptionFile({ alarmKey: settings.alarmKey, qualif: settings.kinds.qualif, summary: settings.summary });
-  const url = new URL(`calendar/${file}`, location.href);
-  return url;
-}
-
 function renderSettings() {
+  renderNotifSummary();
   $("#set-essais").checked = settings.kinds.essais;
   $("#set-qualif").checked = settings.kinds.qualif;
   $("#set-sprint").checked = settings.kinds.sprint;
@@ -351,18 +380,6 @@ function renderSettings() {
   $("#set-summary").checked = settings.summary;
   $("#set-summary-time").value = settings.summaryTime;
   $("#row-summary-time").hidden = !settings.summary;
-  $("#set-alarms").innerHTML = ALARM_PRESETS.map((p) =>
-    `<button class="pill" data-alarm="${p.key}" aria-pressed="${settings.alarmKey === p.key}">${p.label}</button>`).join("");
-  $("#set-series").innerHTML = data.series.map((s) => `
-    <label class="row-toggle" style="--c:${s.color}"><span><i></i>${escapeHtml(s.short)}</span>
-    <input type="checkbox" data-series="${s.id}" ${!settings.series || settings.series.includes(s.id) ? "checked" : ""}></label>`).join("");
-
-  const url = subscriptionUrl();
-  const local = /^(localhost|127\.|\[::1\])/.test(location.hostname);
-  $("#btn-subscribe").href = url.href.replace(/^https?:/, "webcal:");
-  $("#subscribe-note").textContent = local
-    ? "L'abonnement fonctionnera une fois l'app en ligne (GitHub Pages)."
-    : "Abonnement : toutes les séries, sprints compris. Résumé envoyé le vendredi à 18h (heure de Paris). Sur iPhone, pense à désactiver « Supprimer les alertes » lors de l'abonnement.";
   $("#settings-meta").textContent = `Données : ${data.events.length} événements · mise à jour ${data.updatedAt ? new Date(data.updatedAt).toLocaleString("fr-FR") : "—"}`;
 }
 
@@ -374,46 +391,13 @@ function bindSettings() {
   onToggle("#set-tv-fr", (v) => (settings.tvFr = v));
   onToggle("#set-tv-stream", (v) => (settings.tvStream = v));
   onToggle("#set-summary", (v) => (settings.summary = v));
-  $("#set-summary-time").addEventListener("change", (e) => { settings.summaryTime = e.target.value || "18:00"; save(); });
-  $("#set-alarms").addEventListener("click", (e) => {
-    const b = e.target.closest("[data-alarm]"); if (!b) return;
-    settings.alarmKey = b.dataset.alarm; save(); renderSettings();
+  $("#set-summary-time").addEventListener("change", (e) => { settings.summaryTime = e.target.value || "20:00"; save(); });
+  $("#set-notif-delay").addEventListener("click", (e) => {
+    const b = e.target.closest("[data-ndelay]"); if (!b) return;
+    settings.notifDelay = b.dataset.ndelay; save(); renderSettings();
   });
-  $("#set-series").addEventListener("change", (e) => {
-    const all = data.series.map((s) => s.id);
-    const checked = [...document.querySelectorAll("[data-series]")].filter((i) => i.checked).map((i) => i.dataset.series);
-    settings.series = checked.length === all.length ? null : checked;
-    save(); render();
-  });
-  $("#btn-export").addEventListener("click", () => exportIcs({}));
-}
-
-// ---------- Export .ics ----------
-async function exportIcs({ onlyUid }) {
-  const kinds = CALENDAR_KINDS.filter((k) => settings.kinds[k]);
-  let src = data;
-  if (onlyUid) {
-    const s = sessions.find((x) => x.uid === onlyUid);
-    src = { ...data, events: [{ ...s.event, sessions: s.event.sessions.filter((x) => `${s.event.id}-${x.id}` === onlyUid) }] };
-  }
-  const ics = buildICS(src, {
-    name: "A8A Paddock – Courses",
-    alarms: SUB_ALARMS[settings.alarmKey],
-    kinds: onlyUid ? CALENDAR_KINDS : kinds,
-    seriesIds: onlyUid ? null : settings.series,
-    tvFr: settings.tvFr, tvStream: settings.tvStream,
-    summary: onlyUid ? null : { enabled: settings.summary, time: settings.summaryTime, tz: deviceTz },
-  });
-  const name = onlyUid ? `paddock-${onlyUid}.ics` : "paddock.ics";
-  const file = new File([ics], name, { type: "text/calendar" });
-  try {
-    if (navigator.canShare?.({ files: [file] })) { await navigator.share({ files: [file], title: "A8A Paddock" }); return; }
-  } catch (e) { if (e.name === "AbortError") return; }
-  const url = URL.createObjectURL(file);
-  const a = Object.assign(document.createElement("a"), { href: url, download: name });
-  document.body.appendChild(a); a.click(); a.remove();
-  setTimeout(() => URL.revokeObjectURL(url), 5000);
-  toast("Fichier calendrier créé");
+  $("#btn-notif-series").addEventListener("click", () => { renderFilterSheet(); openSheet($("#sheet-filter")); });
+  $("#btn-notif-enable").addEventListener("click", () => toast("Serveur de notifications pas encore installé"));
 }
 
 function toast(msg) {
@@ -446,6 +430,22 @@ $("#filter-list").addEventListener("change", () => {
   setFilter([...document.querySelectorAll("[data-fseries]")].filter((i) => i.checked).map((i) => i.dataset.fseries));
 });
 $("#filter-list").addEventListener("click", (e) => {
+  const bellBtn = e.target.closest("[data-bell]");
+  if (bellBtn) {
+    const id = bellBtn.dataset.bell;
+    const n = { ...settings.notif };
+    if (n[id]) delete n[id]; else n[id] = { ...NOTIF_DEFAULT };
+    settings.notif = n; save(); renderFilterSheet(); renderNotifSummary();
+    return;
+  }
+  const kindBtn = e.target.closest("[data-nkind]");
+  if (kindBtn) {
+    const { nseries, nkind } = kindBtn.dataset;
+    const cur = { ...settings.notif[nseries], [nkind]: !settings.notif[nseries][nkind] };
+    settings.notif = { ...settings.notif, [nseries]: cur };
+    save(); renderFilterSheet(); renderNotifSummary();
+    return;
+  }
   const b = e.target.closest("[data-group]"); if (!b) return;
   const ids = filterableSeries().filter((s) => s.group === b.dataset.group).map((s) => s.id);
   const cur = new Set(settings.filter || []);

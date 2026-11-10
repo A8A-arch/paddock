@@ -1,6 +1,8 @@
 # Consignes de la routine « Vérif Paddock »
 
-Planning : **jeudi 8h**, **samedi 7h** et **dimanche 7h** (heure de Paris), soit 3 exécutions par semaine.
+Planning (heure de Paris), 3 exécutions par semaine :
+- **jeudi 18h** : environ 12 à 16 h avant les premières sessions du vendredi, et avant le résumé du week-end envoyé la veille à 20h ;
+- **samedi 7h** et **dimanche 7h**.
 Dépôt : `A8A-arch/paddock`, branche `main`.
 
 ---

@@ -17,7 +17,7 @@ for (const alarmKey of Object.keys(SUB_ALARMS)) {
         name: "A8A Paddock – Courses",
         alarms: SUB_ALARMS[alarmKey],
         kinds: qualif ? ["qualif", "sprint", "course"] : ["sprint", "course"],
-        summary: { enabled: summary, time: "18:00", tz: "Europe/Paris" },
+        summary: { enabled: summary, time: "20:00", tz: "Europe/Paris" },
       });
       writeFileSync(new URL(subscriptionFile({ alarmKey, qualif, summary }), outDir), ics);
       n++;

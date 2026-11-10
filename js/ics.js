@@ -169,25 +169,28 @@ export function buildICS(data, opts = {}) {
     L.push("END:VEVENT");
   }
 
-  // Résumé du week-end : un événement le vendredi avec tout le programme.
+  // Résumé du week-end : la veille au soir de la 1re session de la semaine (essais compris),
+  // avec tout le programme de la semaine.
   if (opts.summary?.enabled) {
     const tz = opts.summary.tz || "Europe/Paris";
-    const [hh, mm] = (opts.summary.time || "18:00").split(":").map(Number);
+    const [hh, mm] = (opts.summary.time || "20:00").split(":").map(Number);
+    const all = flattenSessions(data).filter((s) => !seriesFilter || seriesFilter.has(s.series.id));
     const weeks = new Map();
-    for (const s of sessions) {
+    for (const s of all) {
       if (s.status === "annule") continue;
       const p = zonedParts(s.sortMs, tz);
       const back = (p.wd + 6) % 7; // jours depuis lundi
-      const monday = Date.UTC(p.y, p.m - 1, p.d) - back * 86400000;
-      const fri = new Date(monday + 4 * 86400000);
-      const key = fri.toISOString().slice(0, 10);
+      const key = new Date(Date.UTC(p.y, p.m - 1, p.d) - back * 86400000).toISOString().slice(0, 10);
       if (!weeks.has(key)) weeks.set(key, []);
       weeks.get(key).push(s);
     }
-    for (const [key, list] of weeks) {
-      const [y, m, d] = key.split("-").map(Number);
-      const at = zonedToUtc(y, m, d, hh, mm, tz);
-      const lines = list.filter((s) => s.sortMs >= at - 3600000).map((s) => {
+    for (const [, group] of weeks) {
+      const first = group.reduce((a, b) => (a.sortMs <= b.sortMs ? a : b));
+      const p = zonedParts(first.sortMs, tz);
+      const eve = new Date(Date.UTC(p.y, p.m - 1, p.d) - 86400000);
+      const key = eve.toISOString().slice(0, 10);
+      const at = zonedToUtc(eve.getUTCFullYear(), eve.getUTCMonth() + 1, eve.getUTCDate(), hh, mm, tz);
+      const lines = group.map((s) => {
         const when = s.startMs ? fmtWhen(s.startMs, tz) : fmtDay(s.sortMs, tz) + " · horaire à confirmer";
         return `${when} — ${s.series.short} ${s.event.name} (${s.label || KIND_LABEL[s.kind]}) · ${shortTv(s, opts)}`;
       });
@@ -216,7 +219,7 @@ function fmtDay(ms, tz) { const p = zonedParts(ms, tz); return `${DAYS[p.wd]} ${
 function fmtWhen(ms, tz) { const p = zonedParts(ms, tz); return `${DAYS[p.wd]} ${p.d}/${pad(p.m)} ${pad(p.h)}h${pad(p.mi)}`; }
 
 /** Préréglages d'abonnement générés côté serveur (fichiers statiques). */
-export const SUB_ALARMS = { "15": [15], "30": [30], "60": [60], "60-15": [60, 15], "120-30": [120, 30] };
+export const SUB_ALARMS = { "0": [], "15": [15], "30": [30], "60": [60], "60-15": [60, 15], "120-30": [120, 30] };
 export function subscriptionFile({ alarmKey, qualif, summary }) {
   return `paddock-${alarmKey}${qualif ? "-q" : ""}${summary ? "-r" : ""}.ics`;
 }

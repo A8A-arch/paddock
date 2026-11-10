@@ -126,7 +126,31 @@ main { max-width: 680px; margin: 0 auto; padding: 14px 16px 0; }
 .f-group-head { display: flex; align-items: center; justify-content: space-between; margin-bottom: 2px; }
 .f-group-head h3 { font-size: 12px; text-transform: uppercase; letter-spacing: .12em; color: var(--muted); margin: 0; font-weight: 600; }
 .f-group-head button { background: none; border: 0; color: var(--accent); font-size: 13px; font-weight: 600; cursor: pointer; padding: 4px 0; }
-.f-row { display: flex; align-items: center; gap: 12px; padding: 9px 0; cursor: pointer; }
+.f-cols {
+  display: flex; justify-content: flex-end; gap: 14px; padding: 0 2px 6px;
+  font-size: 11px; text-transform: uppercase; letter-spacing: .1em; color: var(--faint);
+}
+.f-cols span { width: 34px; text-align: center; }
+.f-item { padding: 0; }
+.f-row { display: flex; align-items: center; gap: 12px; padding: 8px 0; }
+.bell {
+  width: 34px; height: 34px; flex: none; border-radius: 10px; display: grid; place-items: center;
+  background: none; border: 1px solid var(--border); color: var(--faint); cursor: pointer;
+}
+.bell[aria-pressed="true"] { color: #fff; background: var(--c); border-color: var(--c); }
+.f-kinds { display: flex; gap: 6px; flex-wrap: wrap; padding: 0 0 10px 21px; }
+.pill.small { padding: 4px 10px; font-size: 12px; }
+.pill.small[aria-pressed="true"] { border-color: var(--c); background: color-mix(in srgb, var(--c) 18%, var(--surface-2)); color: var(--text); }
+.f-row input { margin-left: 6px; }
+.notif-summary { margin: 4px 0 10px; }
+.label { font-size: 14px; font-weight: 600; margin: 14px 0 8px; }
+.link-btn {
+  display: block; width: 100%; background: none; border: 0; color: var(--muted);
+  text-decoration: underline; font-size: 13px; padding: 6px; cursor: pointer;
+}
+.ns-row { display: flex; align-items: center; gap: 8px; font-size: 14px; padding: 4px 0; }
+.ns-row i { width: 8px; height: 8px; border-radius: 50%; background: var(--c); }
+.ns-row span { color: var(--muted); }
 .f-row i { width: 9px; height: 9px; border-radius: 50%; background: var(--c); flex: none; }
 .f-row span { flex: 1; }
 .f-row input {
