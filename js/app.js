@@ -1,4 +1,4 @@
-import { flattenSessions, KIND_LABEL } from "./ics.js";
+import { flattenSessions, KIND_LABEL } from "./ics.js?v=4";
 
 // ---------- État & réglages ----------
 const DEFAULTS = {
@@ -465,4 +465,6 @@ document.addEventListener("visibilitychange", () => { if (!document.hidden && da
 bindSettings();
 load();
 
-if ("serviceWorker" in navigator) navigator.serviceWorker.register("sw.js").catch(() => {});
+if ("serviceWorker" in navigator) {
+  navigator.serviceWorker.register("sw.js", { updateViaCache: "none" }).then((reg) => reg.update()).catch(() => {});
+}
